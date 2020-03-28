@@ -1,15 +1,11 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
-	"net/http"
 	"os"
 
+	"github.com/NissesSenap/spacesickness/s3service"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 func main() {
@@ -21,26 +17,7 @@ func main() {
 	awsEndpoint := os.Getenv("AWS_ENDPOINT")
 	awsRegion := os.Getenv("AWS_REGION")
 
-	// Creating custom client that can ignore TLS
-	// For some reason it isn't built in to the tool...
-	// https://github.com/aws/aws-sdk-go/issues/2404
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	client := &http.Client{Transport: tr}
-
-	s := session.New(&aws.Config{
-		Credentials:      credentials.NewStaticCredentials(awsAccess, awsSecret, ""),
-		Endpoint:         aws.String(awsEndpoint),
-		Region:           aws.String(awsRegion),
-		DisableSSL:       aws.Bool(false),
-		S3ForcePathStyle: aws.Bool(true),
-		//LogLevel:         aws.LogLevel(aws.LogDebug | aws.LogDebugWithHTTPBody | aws.LogDebugWithRequestRetries | aws.LogDebugWithRequestErrors | aws.LogDebugWithSigning),
-		//Logger:           aws.NewDefaultLogger(),
-		HTTPClient: client,
-	})
-	svc := s3.New(s)
+	svc := s3service.CreateSession(awsAccess, awsSecret, awsEndpoint, awsRegion)
 
 	result, err := svc.ListBuckets(nil)
 	if err != nil {
