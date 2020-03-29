@@ -17,6 +17,7 @@ type ObjectStorage struct {
 	AwsEndpoint string
 	AwsRegion   string
 	client      *http.Client
+	Svc         *s3.S3
 }
 
 //NewS3 creates the method

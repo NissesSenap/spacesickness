@@ -27,8 +27,9 @@ func main() {
 	storage.NewS3(&u)
 
 	svc := u.CreateSession()
+	u.Svc = svc
 
-	result, err := svc.ListBuckets(nil)
+	result, err := u.Svc.ListBuckets(nil)
 	if err != nil {
 		exitErrorf("Unable to list buckets, %v", err)
 	}
