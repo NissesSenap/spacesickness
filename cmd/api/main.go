@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/NissesSenap/spacesickness/s3service"
+	"github.com/NissesSenap/spacesickness/storage"
 	"github.com/aws/aws-sdk-go/aws"
 )
 
@@ -17,7 +17,7 @@ func main() {
 	awsEndpoint := os.Getenv("AWS_ENDPOINT")
 	awsRegion := os.Getenv("AWS_REGION")
 
-	svc := s3service.CreateSession(awsAccess, awsSecret, awsEndpoint, awsRegion)
+	svc := storage.CreateSession(awsAccess, awsSecret, awsEndpoint, awsRegion)
 
 	result, err := svc.ListBuckets(nil)
 	if err != nil {

@@ -1,4 +1,4 @@
-package s3service
+package storage
 
 import (
 	"crypto/tls"
