@@ -12,12 +12,21 @@ func main() {
 
 	// TODO add something that checks if you have a config file the default ~/.aws/credentials
 	// Env always wins
-	awsAccess := os.Getenv("AWS_ACCESS_KEY_ID")
-	awsSecret := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	awsEndpoint := os.Getenv("AWS_ENDPOINT")
-	awsRegion := os.Getenv("AWS_REGION")
+	awsAccessEnv := os.Getenv("AWS_ACCESS_KEY_ID")
+	awsSecretEnv := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	awsEndpointEnv := os.Getenv("AWS_ENDPOINT")
+	awsRegionEnv := os.Getenv("AWS_REGION")
 
-	svc := storage.CreateSession(awsAccess, awsSecret, awsEndpoint, awsRegion)
+	u := storage.ObjectStorage{
+		AwsAccess:   awsAccessEnv,
+		AwsSecret:   awsSecretEnv,
+		AwsEndpoint: awsEndpointEnv,
+		AwsRegion:   awsRegionEnv,
+	}
+
+	storage.NewS3(&u)
+
+	svc := u.CreateSession()
 
 	result, err := svc.ListBuckets(nil)
 	if err != nil {
