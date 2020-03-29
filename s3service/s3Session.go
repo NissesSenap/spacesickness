@@ -2,9 +2,7 @@ package s3service
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -12,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func CreateSession(awsAccess, awsSecret, awsEndpoint, awsRegion string) *S3 {
-// Creating custom client that can ignore TLS
+func CreateSession(awsAccess, awsSecret, awsEndpoint, awsRegion string) *s3.S3 {
+	// Creating custom client that can ignore TLS
 	// For some reason it isn't built in to the tool...
 	// https://github.com/aws/aws-sdk-go/issues/2404
 	tr := &http.Transport{
@@ -33,5 +31,5 @@ func CreateSession(awsAccess, awsSecret, awsEndpoint, awsRegion string) *S3 {
 		HTTPClient: client,
 	})
 	svc := s3.New(s)
-	reteurn svc
+	return svc
 }
