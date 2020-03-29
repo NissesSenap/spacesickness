@@ -17,19 +17,19 @@ func main() {
 	awsEndpointEnv := os.Getenv("AWS_ENDPOINT")
 	awsRegionEnv := os.Getenv("AWS_REGION")
 
-	u := storage.ObjectStorage{
+	ose := storage.ObjectStorage{
 		AwsAccess:   awsAccessEnv,
 		AwsSecret:   awsSecretEnv,
 		AwsEndpoint: awsEndpointEnv,
 		AwsRegion:   awsRegionEnv,
 	}
 
-	storage.NewS3(&u)
+	storage.NewS3(&ose)
 
-	svc := u.CreateSession()
-	u.Svc = svc
+	svc := ose.CreateSession()
+	ose.Svc = svc
 
-	result, err := u.Svc.ListBuckets(nil)
+	result, err := ose.Svc.ListBuckets(nil)
 	if err != nil {
 		exitErrorf("Unable to list buckets, %v", err)
 	}
@@ -40,6 +40,7 @@ func main() {
 		fmt.Printf("* %s created on %s\n",
 			aws.StringValue(b.Name), aws.TimeValue(b.CreationDate))
 	}
+	ose.GetObjects()
 }
 
 func exitErrorf(msg string, args ...interface{}) {
