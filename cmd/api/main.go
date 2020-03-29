@@ -40,7 +40,9 @@ func main() {
 		fmt.Printf("* %s created on %s\n",
 			aws.StringValue(b.Name), aws.TimeValue(b.CreationDate))
 	}
-	ose.GetObjects()
+	bucketObjects := ose.GetAllObjects()
+	bucketItemNames := ose.GetObjectList(bucketObjects)
+	fmt.Println(bucketItemNames)
 }
 
 func exitErrorf(msg string, args ...interface{}) {

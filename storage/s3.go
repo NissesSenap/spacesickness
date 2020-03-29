@@ -52,11 +52,11 @@ func (ose ObjectStorage) CreateSession() *s3.S3 {
 	return svc
 }
 
-// GetObjects grabs all the items in a bucket.
-func (ose ObjectStorage) GetObjects() {
+// GetAllObjects grabs all the items in a bucket
+func (ose ObjectStorage) GetAllObjects() *s3.ListObjectsV2Output {
 	input := &s3.ListObjectsV2Input{
 		Bucket:  aws.String("something-ec909d91-5794-4acd-ba49-53ec2e2c1f56"),
-		MaxKeys: aws.Int64(2),
+		MaxKeys: aws.Int64(1000), // Default value is 1000, need to look in to pageination long-term
 	}
 
 	result, err := ose.Svc.ListObjectsV2(input)
@@ -73,7 +73,16 @@ func (ose ObjectStorage) GetObjects() {
 			// Message from an error.
 			fmt.Println(err.Error())
 		}
-		return
+		return nil
 	}
-	fmt.Println(result)
+	return result
+}
+
+// GetObjectList is returns a list of strings containing all names of the objects
+func (ose ObjectStorage) GetObjectList(baseList *s3.ListObjectsV2Output) []string {
+	var myList []string
+	for _, b := range baseList.Contents {
+		myList = append(myList, *b.Key)
+	}
+	return myList
 }
