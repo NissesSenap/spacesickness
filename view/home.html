@@ -1,0 +1,12 @@
+{{define "home.html"}}
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Boatswain Blog | {{index . "name"}}</title>
+    </head>
+    <body>
+      <h1>{{index . "msg"}}</h1>
+      <a href={{ index . "msg2"}}>{{ index . "msg2"}}</a>
+    </body>
+  </html>
+{{end}}
