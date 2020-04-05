@@ -125,6 +125,7 @@ func (ose ObjectStorage) GetBucketPolicy() {
 // ReadAllPolicyBucket allows anonymous users  to read a specific bucket
 func (ose ObjectStorage) ReadAllPolicyBucket() {
 	readOnlyAnonUserPolicy := map[string]interface{}{
+		"Version": "2012-10-17",
 		"Statement": []map[string]interface{}{
 			{
 				"Sid":       "PublicReadForGetBucketObjects",
@@ -150,6 +151,15 @@ func (ose ObjectStorage) ReadAllPolicyBucket() {
 		Bucket: aws.String(bucketname),
 		Policy: aws.String(string(policy)),
 	})
+
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == s3.ErrCodeNoSuchBucket {
+			// Special error handling for the when the bucket doesn't
+			// exists so we can give a more direct error message from the CLI.
+			exitErrorf("Bucket %q does not exist", bucketname)
+		}
+		exitErrorf("Unable to set bucket %q policy, %v", bucketname, err)
+	}
 
 	fmt.Printf("Successfully set bucket %q's policy\n", bucketname)
 
