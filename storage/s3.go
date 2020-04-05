@@ -74,6 +74,25 @@ func (ose ObjectStorage) GetPreSign() {
 	fmt.Printf("The URL is: \n %v \n", urlStr)
 }
 
+// GetBucketPolicyStatus returns a bool if the system is public or not
+func (ose ObjectStorage) GetBucketPolicyStatus() (bool, error) {
+	status, err := ose.Svc.GetBucketPolicyStatus(&s3.GetBucketPolicyStatusInput{
+		Bucket: aws.String(bucketname),
+	})
+	if err != nil {
+		fmt.Println("Can't get the status...")
+		return false, err
+	}
+	fmt.Println(status.String())
+	/*
+		if status {
+			return true, nil
+		}
+		return false, nil
+	*/
+	return false, nil
+}
+
 // GetBucketPolicy grabs the current bucket policy
 func (ose ObjectStorage) GetBucketPolicy() {
 	result, err := ose.Svc.GetBucketPolicy(&s3.GetBucketPolicyInput{
@@ -124,6 +143,7 @@ func (ose ObjectStorage) ReadAllPolicyBucket() {
 	if err != nil {
 		exitErrorf("Failed to marshal policy, %v", err)
 	}
+	fmt.Println(string(policy))
 
 	// Set the bucket policy
 	_, err = ose.Svc.PutBucketPolicy(&s3.PutBucketPolicyInput{

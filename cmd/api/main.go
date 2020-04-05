@@ -29,6 +29,8 @@ func main() {
 	svc := ose.CreateSession()
 	ose.Svc = svc
 	ose.GetPreSign()
+	status, _ := ose.GetBucketPolicyStatus()
+	fmt.Println(status)
 	ose.GetBucketPolicy()
 	ose.ReadAllPolicyBucket()
 	fmt.Println("Second time to read policy")
