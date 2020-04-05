@@ -29,6 +29,10 @@ func main() {
 	svc := ose.CreateSession()
 	ose.Svc = svc
 	ose.GetPreSign()
+	ose.GetBucketPolicy()
+	ose.ReadAllPolicyBucket()
+	fmt.Println("Second time to read policy")
+	ose.GetBucketPolicy()
 	result, err := ose.Svc.ListBuckets(nil)
 	if err != nil {
 		exitErrorf("Unable to list buckets, %v", err)

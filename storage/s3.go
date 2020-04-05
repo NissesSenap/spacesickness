@@ -1,10 +1,13 @@
 package storage
 
 import (
+	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -13,6 +16,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
+
+const bucketname string = "something-ec909d91-5794-4acd-ba49-53ec2e2c1f56"
 
 // ObjectStorage this is the base struct that is used everywhere.
 type ObjectStorage struct {
@@ -57,7 +62,7 @@ func (ose ObjectStorage) CreateSession() *s3.S3 {
 // GetPreSign will generate a presigned url
 func (ose ObjectStorage) GetPreSign() {
 	req, _ := ose.Svc.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String("something-ec909d91-5794-4acd-ba49-53ec2e2c1f56"),
+		Bucket: aws.String(bucketname),
 		Key:    aws.String("debbuild-19.11.0-1.el8.noarch.rpm"),
 	})
 	urlStr, err := req.Presign(15 * time.Minute)
@@ -69,10 +74,71 @@ func (ose ObjectStorage) GetPreSign() {
 	fmt.Printf("The URL is: \n %v \n", urlStr)
 }
 
+// GetBucketPolicy grabs the current bucket policy
+func (ose ObjectStorage) GetBucketPolicy() {
+	result, err := ose.Svc.GetBucketPolicy(&s3.GetBucketPolicyInput{
+		Bucket: aws.String(bucketname),
+	})
+	if err != nil {
+		// Special error handling for the when the bucket doesn't
+		// exists so we can give a more direct error message from the CLI.
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case s3.ErrCodeNoSuchBucket:
+				fmt.Printf("Bucket %q does not exist", bucketname)
+			case "NoSuchBucketPolicy":
+				fmt.Printf("Bucket %q does not have a policy", bucketname)
+			}
+		}
+		fmt.Printf("Unable to get bucket %q policy, %v", bucketname, err)
+	}
+	out := bytes.Buffer{}
+	policyStr := aws.StringValue(result.Policy)
+	if err := json.Indent(&out, []byte(policyStr), "", "  "); err != nil {
+		fmt.Printf("Failed to pretty print bucket policy, %v", err)
+	}
+
+	fmt.Printf("%q's Bucket Policy:\n", bucketname)
+	fmt.Println(out.String())
+
+}
+
+// ReadAllPolicyBucket allows anonymous users  to read a specific bucket
+func (ose ObjectStorage) ReadAllPolicyBucket() {
+	readOnlyAnonUserPolicy := map[string]interface{}{
+		"Statement": []map[string]interface{}{
+			{
+				"Sid":       "PublicReadForGetBucketObjects",
+				"Effect":    "Allow",
+				"Principal": "*",
+				"Action": []string{
+					"s3:GetObject",
+				},
+				"Resource": []string{
+					fmt.Sprintf("arn:aws:s3:::%s/*", bucketname),
+				},
+			},
+		},
+	}
+	policy, err := json.Marshal(readOnlyAnonUserPolicy)
+	if err != nil {
+		exitErrorf("Failed to marshal policy, %v", err)
+	}
+
+	// Set the bucket policy
+	_, err = ose.Svc.PutBucketPolicy(&s3.PutBucketPolicyInput{
+		Bucket: aws.String(bucketname),
+		Policy: aws.String(string(policy)),
+	})
+
+	fmt.Printf("Successfully set bucket %q's policy\n", bucketname)
+
+}
+
 // GetAllObjects grabs all the items in a bucket
 func (ose ObjectStorage) GetAllObjects() *s3.ListObjectsV2Output {
 	input := &s3.ListObjectsV2Input{
-		Bucket:  aws.String("something-ec909d91-5794-4acd-ba49-53ec2e2c1f56"),
+		Bucket:  aws.String(bucketname),
 		MaxKeys: aws.Int64(1000), // Default value is 1000, need to look in to pageination long-term
 	}
 
@@ -102,4 +168,9 @@ func (ose ObjectStorage) GetObjectList(baseList *s3.ListObjectsV2Output) []strin
 		myList = append(myList, *b.Key)
 	}
 	return myList
+}
+
+func exitErrorf(msg string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, msg+"\n", args...)
+	os.Exit(1)
 }
