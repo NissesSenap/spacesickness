@@ -3,7 +3,9 @@ package storage
 import (
 	"crypto/tls"
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -50,6 +52,21 @@ func (ose ObjectStorage) CreateSession() *s3.S3 {
 	})
 	svc := s3.New(s)
 	return svc
+}
+
+// GetPreSign will generate a presigned url
+func (ose ObjectStorage) GetPreSign() {
+	req, _ := ose.Svc.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String("something-ec909d91-5794-4acd-ba49-53ec2e2c1f56"),
+		Key:    aws.String("debbuild-19.11.0-1.el8.noarch.rpm"),
+	})
+	urlStr, err := req.Presign(15 * time.Minute)
+
+	if err != nil {
+		log.Println("Failed to sign request", err)
+	}
+
+	fmt.Printf("The URL is: \n %v \n", urlStr)
 }
 
 // GetAllObjects grabs all the items in a bucket

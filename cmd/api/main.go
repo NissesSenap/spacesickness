@@ -28,7 +28,7 @@ func main() {
 
 	svc := ose.CreateSession()
 	ose.Svc = svc
-
+	ose.GetPreSign()
 	result, err := ose.Svc.ListBuckets(nil)
 	if err != nil {
 		exitErrorf("Unable to list buckets, %v", err)
